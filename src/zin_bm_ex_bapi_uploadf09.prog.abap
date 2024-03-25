@@ -1,0 +1,173 @@
+*&---------------------------------------------------------------------*
+*& Include          ZIN_BM_EX_BAPI_UPLOADF09
+*&---------------------------------------------------------------------*
+*&---------------------------------------------------------------------*
+*& Form 9009_PRODORDCONF_CREATE
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*& -->  p1        text
+*& <--  p2        text
+*&---------------------------------------------------------------------*
+FORM 9009_PRODORDCONF_CREATE
+  CHANGING
+    LPT_FPAR_D TYPE ZTT_BM_EXBA_FPAR
+    LPT_RETURN TYPE BAPIRET2_T
+    LPW_DOCRS    TYPE ZTB_BM_EXBA_FPAR-DOCRS.
+
+  DATA: LV_ORDERID TYPE	AUFNR.
+
+  DATA:
+    LV_POST_WRONG_ENTRIES TYPE  BAPI_CORU_PARAM-INS_ERR,
+    LV_TESTRUN            TYPE  BAPI_CORU_PARAM-TESTRUN,
+    LV_NO_DATA_RESET      TYPE  BAPIFLAG-BAPIFLAG.
+
+  DATA:
+        LS_RETURN_EX TYPE BAPIRET1.
+
+  DATA:
+    LT_ATHDRLEVELS           TYPE TABLE OF BAPI_PP_HDRLEVEL, "Table of Confirmations for Order
+    LT_GOODSMOVEMENTS        TYPE TABLE OF BAPI2017_GM_ITEM_CREATE, "Table of Goods Movements
+    LT_LINK_CONF_GOODSMOV    TYPE TABLE OF BAPI_LINK_CONF_GOODSMOV, "Linkage Table for Conf./Goods Movement
+    LT_CHARACTERISTICS_BATCH TYPE TABLE OF BAPI_CHAR_BATCH, "Table of Batch Characteristics
+    LT_LINK_GM_CHAR_BATCH    TYPE TABLE OF BAPI_LINK_GM_CHAR_BATCH, "Link: Batch Characteristics with Goods Movement Item
+    LT_RETURN                TYPE TABLE OF BAPI_CORU_RETURN, "Return Parameter for Confirmation Table
+    LS_RETURN                TYPE BAPI_CORU_RETURN.
+
+  PERFORM 9009_PRODORDCONF_PARAMS
+  USING LPT_FPAR_D
+  CHANGING LT_ATHDRLEVELS
+           LT_GOODSMOVEMENTS
+           LT_LINK_CONF_GOODSMOV
+           LT_CHARACTERISTICS_BATCH
+           LT_LINK_GM_CHAR_BATCH.
+
+*   Create data
+  CALL FUNCTION 'BAPI_PRODORDCONF_CREATE_HDR'
+*   EXPORTING
+*     POST_WRONG_ENTRIES          = '0'
+*     TESTRUN                     =
+*     NO_DATA_RESET               = ' '
+    IMPORTING
+      RETURN                = LS_RETURN_EX
+    TABLES
+      ATHDRLEVELS           = LT_ATHDRLEVELS
+      GOODSMOVEMENTS        = LT_GOODSMOVEMENTS
+      LINK_CONF_GOODSMOV    = LT_LINK_CONF_GOODSMOV
+      DETAIL_RETURN         = LT_RETURN
+      CHARACTERISTICS_BATCH = LT_CHARACTERISTICS_BATCH
+      LINK_GM_CHAR_BATCH    = LT_LINK_GM_CHAR_BATCH.
+
+  LOOP AT LT_ATHDRLEVELS INTO DATA(LS_ATHDRLEVELS) WHERE ORDERID IS NOT INITIAL.
+    LV_ORDERID = LS_ATHDRLEVELS-ORDERID.
+  ENDLOOP.
+
+  LPT_RETURN = LT_RETURN.
+  LPW_DOCRS  = LV_ORDERID.
+
+ENDFORM.
+*&---------------------------------------------------------------------*
+*& Form 9009_PRODORDCONF_PARAMS
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*&      <-- LT_ATHDRLEVELS
+*&      <-- LT_GOODSMOVEMENTS
+*&      <-- LT_LINK_CONF_GOODSMOV
+*&      <-- LT_CHARACTERISTICS_BATCH
+*&      <-- LT_LINK_GM_CHAR_BATCH
+*&---------------------------------------------------------------------*
+FORM 9009_PRODORDCONF_PARAMS
+  USING LPT_FPAR_D TYPE ZTT_BM_EXBA_FPAR  CHANGING LPT_ATHDRLEVELS TYPE BAPI_PP_HDRLEVEL_T
+                                       LPT_GOODSMOVEMENTS TYPE TAB_BAPI_GOODSMVT_ITEM
+                                       LPT_LINK_CONF_GOODSMOV TYPE BAPI_LINK_CONF_GOODSMOV_T
+                                       LPT_CHARACTERISTICS_BATCH TYPE GTY_BAPI_CHAR_BATCH
+                                       LPT_LINK_GM_CHAR_BATCH TYPE GTY_BAPI_LINK_GM_CHAR_BATCH.
+
+  DATA:
+    LR_DATA       TYPE REF TO DATA,
+    LV_SUM_YIELD  TYPE GAMNG,
+    LV_SUM_SCRAP  TYPE GAMNG,
+    LV_SUM_REWORK TYPE GAMNG.
+
+  LOOP AT LPT_FPAR_D INTO DATA(LPS_FPAR_D).
+    CASE LPS_FPAR_D-PARAM.
+      WHEN 'ATHDRLEVELS'.
+        CREATE DATA LR_DATA LIKE LINE OF LPT_ATHDRLEVELS.
+        CALL TRANSFORMATION ID
+          SOURCE XML LPS_FPAR_D-XMLSTR
+          RESULT DATA = LR_DATA->*.
+        APPEND LR_DATA->* TO LPT_ATHDRLEVELS.
+      WHEN 'GOODSMOVEMENTS'.
+        CREATE DATA LR_DATA LIKE LINE OF LPT_GOODSMOVEMENTS.
+        CALL TRANSFORMATION ID
+          SOURCE XML LPS_FPAR_D-XMLSTR
+          RESULT DATA = LR_DATA->*.
+        APPEND LR_DATA->* TO LPT_GOODSMOVEMENTS.
+      WHEN 'LINK_CONF_GOODSMOV'.
+        CREATE DATA LR_DATA LIKE LINE OF LPT_LINK_CONF_GOODSMOV.
+        CALL TRANSFORMATION ID
+          SOURCE XML LPS_FPAR_D-XMLSTR
+          RESULT DATA = LR_DATA->*.
+        APPEND LR_DATA->* TO LPT_LINK_CONF_GOODSMOV.
+      WHEN 'CHARACTERISTICS_BATCH'.
+        CREATE DATA LR_DATA LIKE LINE OF LPT_CHARACTERISTICS_BATCH.
+        CALL TRANSFORMATION ID
+          SOURCE XML LPS_FPAR_D-XMLSTR
+          RESULT DATA = LR_DATA->*.
+        APPEND LR_DATA->* TO LPT_CHARACTERISTICS_BATCH.
+      WHEN 'LINK_GM_CHAR_BATCH'.
+        CREATE DATA LR_DATA LIKE LINE OF LPT_LINK_GM_CHAR_BATCH.
+        CALL TRANSFORMATION ID
+          SOURCE XML LPS_FPAR_D-XMLSTR
+          RESULT DATA = LR_DATA->*.
+        APPEND LR_DATA->* TO LPT_LINK_GM_CHAR_BATCH.
+      WHEN OTHERS.
+    ENDCASE.
+  ENDLOOP.
+
+
+
+  IF LPT_ATHDRLEVELS IS NOT INITIAL.
+    " Conversion Order Number
+    LOOP AT LPT_ATHDRLEVELS ASSIGNING FIELD-SYMBOL(<LFS_ATHDRLEVELS>).
+      CALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT'
+        EXPORTING
+          INPUT  = <LFS_ATHDRLEVELS>-ORDERID
+        IMPORTING
+          OUTPUT = <LFS_ATHDRLEVELS>-ORDERID.
+    ENDLOOP.
+
+    " Lấy dữ liệu Số lượng Total Order Quantity so với Số lượng Confirm
+    SELECT
+      AUFNR,
+      GAMNG, "Total Order Quantity
+      IGMNG, "Confirmed Yield Quantity
+      IASMG, "Confirmed Scrap Quantity
+      RMNGA, "Confirmed Rework Quantity
+      GMEIN
+      FROM AFKO
+      FOR ALL ENTRIES IN @LPT_ATHDRLEVELS
+      WHERE AUFNR = @LPT_ATHDRLEVELS-ORDERID
+      INTO TABLE @DATA(LT_AFKO).
+
+    SORT LPT_ATHDRLEVELS BY ORDERID.
+    SORT LT_AFKO BY AUFNR.
+
+    LOOP AT LPT_ATHDRLEVELS ASSIGNING <LFS_ATHDRLEVELS>.
+      READ TABLE LT_AFKO INTO DATA(LS_AFKO)
+      WITH KEY AUFNR = <LFS_ATHDRLEVELS>-ORDERID
+      BINARY SEARCH.
+      IF SY-SUBRC IS INITIAL.
+        LV_SUM_YIELD = LS_AFKO-GAMNG + <LFS_ATHDRLEVELS>-YIELD.
+        LV_SUM_SCRAP = LS_AFKO-IASMG + <LFS_ATHDRLEVELS>-SCRAP.
+        LV_SUM_REWORK = LS_AFKO-RMNGA + <LFS_ATHDRLEVELS>-REWORK.
+        IF LV_SUM_YIELD > LS_AFKO-GAMNG.
+          MESSAGE S004(ZMS_BM_CS) DISPLAY LIKE 'E'.
+        ENDIF.
+      ENDIF.
+      CLEAR: LV_SUM_YIELD,LV_SUM_SCRAP,LV_SUM_REWORK,LS_AFKO.
+    ENDLOOP.
+  ENDIF.
+
+ENDFORM.

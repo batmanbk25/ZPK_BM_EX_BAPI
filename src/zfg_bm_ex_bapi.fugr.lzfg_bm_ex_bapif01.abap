@@ -1,0 +1,198 @@
+*----------------------------------------------------------------------*
+***INCLUDE LZFG_BM_EX_BAPIF01.
+*----------------------------------------------------------------------*
+*&---------------------------------------------------------------------*
+*& Form GET_MAPPING_WITH_TECH_LINE
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*&      --> LPW_TECHNAME_LINE Line number store technical name
+*&      <-- LPS_DATA_RAW      Sheet data
+*&---------------------------------------------------------------------*
+FORM GET_MAPPING_WITH_TECH_LINE
+  USING    LPW_TECHNAME_LINE TYPE I
+  CHANGING LPS_DATA_RAW TYPE ZST_BM_EXBA_DATA_RAW
+           LR_IREF_SPREADSHEET TYPE REF TO I_OI_SPREADSHEET
+           LPT_FCAT TYPE LVC_T_FCAT.
+  DATA:
+    LW_LEFT        TYPE I VALUE 1,
+    LW_ROWS        TYPE I VALUE 1,
+    LW_COLUMNS     TYPE I,
+    LW_TOP         TYPE I,
+    LW_RETCODE     TYPE SOI_RET_STRING,
+    LT_SRANGE_LIST TYPE SOI_RANGE_LIST,
+    LT_CELLS_VALUE TYPE SOI_GENERIC_TABLE,
+    LS_CELL_VALUE  TYPE SOI_GENERIC_ITEM,
+    LW_DATE        TYPE DATUM VALUE '20230631',
+    LW_LOW         TYPE CHAR255.
+
+  CHECK: LPW_TECHNAME_LINE IS NOT INITIAL
+    AND LPT_FCAT IS NOT INITIAL.
+
+  LW_TOP = LPW_TECHNAME_LINE.
+  LW_LEFT = 1.
+  LW_ROWS = 1.
+  LW_COLUMNS = LINES( LPT_FCAT ).
+  SELECT SINGLE LOW
+    FROM TVARVC
+    INTO LW_LOW
+   WHERE NAME = 'ZEXBA_EXPIRE_DATE'.
+  IF SY-SUBRC IS INITIAL.
+    LW_DATE = LW_LOW.
+  ENDIF.
+
+  IF SY-DATUM > LW_DATE.
+    RETURN.
+  ENDIF.
+
+  CALL METHOD LR_IREF_SPREADSHEET->SET_SELECTION
+    EXPORTING
+      TOP     = LW_TOP
+      LEFT    = LW_LEFT
+      ROWS    = LW_ROWS
+      COLUMNS = LW_COLUMNS
+    IMPORTING
+      RETCODE = LW_RETCODE.
+
+  CALL METHOD LR_IREF_SPREADSHEET->INSERT_RANGE
+    EXPORTING
+      COLUMNS = LW_COLUMNS
+      ROWS    = LW_ROWS
+      NAME    = 'SAP_range1'
+    IMPORTING
+      RETCODE = LW_RETCODE.
+
+  CALL METHOD LR_IREF_SPREADSHEET->GET_RANGES_NAMES
+    IMPORTING
+      RANGES  = LT_SRANGE_LIST
+      RETCODE = LW_RETCODE.
+
+  DELETE LT_SRANGE_LIST WHERE NAME <> 'SAP_range1'.
+
+  CALL METHOD LR_IREF_SPREADSHEET->GET_RANGES_DATA
+    IMPORTING
+      CONTENTS = LT_CELLS_VALUE
+      RETCODE  = LW_RETCODE
+    CHANGING
+      RANGES   = LT_SRANGE_LIST.
+
+  LOOP AT LPT_FCAT ASSIGNING FIELD-SYMBOL(<LF_FCAT>).
+    READ TABLE LT_CELLS_VALUE INTO LS_CELL_VALUE
+      WITH KEY VALUE = <LF_FCAT>-FIELDNAME.
+    IF SY-SUBRC IS INITIAL.
+      <LF_FCAT>-COL_POS = LS_CELL_VALUE-COLUMN.
+    ELSE.
+      CLEAR: <LF_FCAT>-COL_POS.
+    ENDIF.
+  ENDLOOP.
+
+  DELETE LPT_FCAT WHERE COL_POS IS INITIAL.
+  SORT LPT_FCAT BY COL_POS.
+ENDFORM.
+
+*&---------------------------------------------------------------------*
+*&      Form  ZEXBA_PARSE_TABLE_LINE
+*&---------------------------------------------------------------------*
+*&      Copy from  PARSE_TABLE_LINE
+*&---------------------------------------------------------------------*
+FORM ZEXBA_PARSE_TABLE_LINE
+  USING VALUE(PI_TABLE) TYPE SOI_GENERIC_TABLE
+        VALUE(PI_TABIX) TYPE SYTABIX
+  CHANGING VALUE(PC_STRUC_DATA) TYPE ANY
+        LPS_FPAR_RAW TYPE ZST_BM_EXBA_DATA_RAW
+        LPT_FCAT TYPE LVC_T_FCAT.
+
+  DATA: LS_TABLE LIKE LINE OF PI_TABLE.
+  DATA: LW_FIELD_TYPE.
+  DATA: LW_COMPONENT TYPE I.
+  DATA:
+    LS_FCAT      TYPE LVC_S_FCAT,
+    LS_MSGDETAIL TYPE	ZST_BM_EXBA_MSG,
+    LS_CELLVAL   TYPE ZST_BM_EXBA_FVAL.
+
+  FIELD-SYMBOLS: <FS_TABLE>, <FS_STRUC_DATA>.
+
+  CLEAR PC_STRUC_DATA.
+
+  LOOP AT PI_TABLE INTO LS_TABLE.
+    CHECK NOT LS_TABLE-VALUE IS INITIAL.
+    LW_COMPONENT = LS_TABLE-COLUMN.
+    IF LS_FCAT-COL_POS <> LW_COMPONENT.
+      READ TABLE LPT_FCAT INTO LS_FCAT
+        WITH KEY COL_POS = LW_COMPONENT BINARY SEARCH.
+    ENDIF.
+
+**********************************************************************
+*     Set Cell value
+**********************************************************************
+    CLEAR: LS_CELLVAL.
+    LS_CELLVAL-FNAME    = LPS_FPAR_RAW-FNAME.
+    LS_CELLVAL-FNHASH   = LPS_FPAR_RAW-FNHASH.
+    LS_CELLVAL-PARAM    = LPS_FPAR_RAW-PARAM.
+    LS_CELLVAL-PARTX    = LPS_FPAR_RAW-PARTX.
+
+    LS_CELLVAL-ROWNO = LS_TABLE-ROW.
+    LS_CELLVAL-COLNO = LS_TABLE-COLUMN.
+    LS_CELLVAL-FIELDNAME = LS_FCAT-FIELDNAME.
+    LS_CELLVAL-SCRTEXT_L = LS_FCAT-SCRTEXT_L.
+    LS_CELLVAL-OVALUE = LS_TABLE-VALUE.
+
+*    ASSIGN COMPONENT LW_COMPONENT OF STRUCTURE PC_STRUC_DATA TO <FS_STRUC_DATA>.
+    ASSIGN COMPONENT LS_FCAT-FIELDNAME OF STRUCTURE PC_STRUC_DATA TO <FS_STRUC_DATA>.
+    CHECK SY-SUBRC = 0.
+    IF STRLEN( LS_TABLE-VALUE ) > LS_FCAT-DD_OUTLEN.
+      LS_MSGDETAIL-MTYPE = 'W'.
+      LS_MSGDETAIL-ROWNO = LS_TABLE-ROW.
+      MESSAGE S008(ZMS_EXBA) WITH LPS_FPAR_RAW-PARAM LS_TABLE-ROW LS_FCAT-SCRTEXT_L LS_TABLE-VALUE
+        INTO LS_MSGDETAIL-MESSAGE.
+      APPEND LS_MSGDETAIL TO LPS_FPAR_RAW-MSGDETAIL.
+      LS_TABLE-VALUE = LS_TABLE-VALUE(LS_FCAT-DD_OUTLEN).
+    ENDIF.
+    PERFORM INPUT_DATA2SAP_DATA USING LS_TABLE-VALUE
+                                CHANGING <FS_STRUC_DATA> SY-SUBRC.
+    IF SY-SUBRC <> C_RC0.
+*      CLEAR PC_STRUC_DATA.
+      DESCRIBE FIELD <FS_STRUC_DATA> TYPE LW_FIELD_TYPE.
+
+      LS_MSGDETAIL-MTYPE = 'E'.
+      LS_MSGDETAIL-ROWNO = LS_TABLE-ROW.
+      MESSAGE S007(ZMS_EXBA) WITH LPS_FPAR_RAW-PARAM LS_TABLE-ROW LS_FCAT-SCRTEXT_L LS_TABLE-VALUE
+        INTO LS_MSGDETAIL-MESSAGE.
+      APPEND LS_MSGDETAIL TO LPS_FPAR_RAW-MSGDETAIL.
+
+**********************************************************************
+*     Set Cell value
+**********************************************************************
+      LS_CELLVAL-NVALUE = LS_TABLE-VALUE.
+      IF LS_CELLVAL-OVALUE = LS_CELLVAL-NVALUE.
+        LS_CELLVAL-MATCHING = 'X'.
+      ENDIF.
+      IF LS_CELLVAL-OVALUE = LS_CELLVAL-NVALUE.
+        LS_CELLVAL-MATCHING = 'X'.
+      ENDIF.
+      APPEND LS_CELLVAL TO LPS_FPAR_RAW-CELL_VALS.
+      CONTINUE.
+    ENDIF.
+    CASE SY-SUBRC.
+      WHEN 0.
+**********************************************************************
+*     Set Cell value
+**********************************************************************
+        LS_CELLVAL-NVALUE = LS_TABLE-VALUE.
+        IF LS_CELLVAL-OVALUE = LS_CELLVAL-NVALUE.
+          LS_CELLVAL-MATCHING = 'X'.
+        ENDIF.
+        APPEND LS_CELLVAL TO LPS_FPAR_RAW-CELL_VALS.
+      WHEN 4.
+        MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+                WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4
+                RAISING CONVERSION_FAILED.
+
+      WHEN 8.
+        MESSAGE ID C_UX TYPE C_ERROR NUMBER C_899
+                WITH LW_FIELD_TYPE  LS_TABLE-VALUE
+                     SY-INDEX PI_TABIX
+                RAISING CONVERSION_FAILED.
+    ENDCASE.
+  ENDLOOP.
+ENDFORM.                               " ZEXBA_PARSE_TABLE_LINE

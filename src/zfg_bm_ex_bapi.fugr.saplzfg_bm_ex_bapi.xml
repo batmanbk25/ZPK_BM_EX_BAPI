@@ -1,0 +1,176 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<abapGit version="v1.0.0">
+ <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
+  <asx:values>
+   <PROGDIR>
+    <NAME>SAPLZFG_BM_EX_BAPI</NAME>
+    <DBAPL>S</DBAPL>
+    <DBNA>D$</DBNA>
+    <SUBC>F</SUBC>
+    <APPL>S</APPL>
+    <RLOAD>E</RLOAD>
+    <FIXPT>X</FIXPT>
+    <LDBNAME>D$S</LDBNAME>
+    <UCCHECK>X</UCCHECK>
+   </PROGDIR>
+   <TPOOL>
+    <item>
+     <ID>I</ID>
+     <KEY>ASC</KEY>
+     <ENTRY>Text file</ENTRY>
+     <LENGTH>9</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>BCK</KEY>
+     <ENTRY>Back</ENTRY>
+     <LENGTH>15</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>CAP</KEY>
+     <ENTRY>Generated batch input data</ENTRY>
+     <LENGTH>28</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>CON</KEY>
+     <ENTRY>Error while converting to file format:</ENTRY>
+     <LENGTH>42</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>COV</KEY>
+     <ENTRY>Error while converting from file format:</ENTRY>
+     <LENGTH>41</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>CSV</KEY>
+     <ENTRY>CSV format (fld separator = ;)</ENTRY>
+     <LENGTH>31</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>DBS</KEY>
+     <ENTRY>Application server</ENTRY>
+     <LENGTH>18</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>DIS</KEY>
+     <ENTRY>Display</ENTRY>
+     <LENGTH>20</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>DTF</KEY>
+     <ENTRY>File format</ENTRY>
+     <LENGTH>21</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>DTN</KEY>
+     <ENTRY>Input file</ENTRY>
+     <LENGTH>12</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>EXL</KEY>
+     <ENTRY>Excel</ENTRY>
+     <LENGTH>5</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>FIH</KEY>
+     <ENTRY>Field contents</ENTRY>
+     <LENGTH>20</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>HIE</KEY>
+     <ENTRY>Transactions</ENTRY>
+     <LENGTH>40</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>HIT</KEY>
+     <ENTRY>The hierarchy reflects the assignment of the data that has been read to the relevant fields</ENTRY>
+     <LENGTH>132</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>IN1</KEY>
+     <ENTRY>Input file</ENTRY>
+     <LENGTH>12</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>KON</KEY>
+     <ENTRY>Line &amp;&amp;&amp;&amp;&amp;&amp; / &amp;&amp;&amp;&amp;&amp;&amp; converted</ENTRY>
+     <LENGTH>36</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>KOX</KEY>
+     <ENTRY>Read and convert line &amp;&amp;&amp;&amp;&amp;&amp; from &amp;&amp;&amp;&amp;&amp;&amp;</ENTRY>
+     <LENGTH>100</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>KOY</KEY>
+     <ENTRY>Read and convert line &amp;&amp;&amp;&amp;&amp;&amp; to line &amp;&amp;&amp;&amp;&amp;&amp; from &amp;&amp;&amp;&amp;&amp;&amp;</ENTRY>
+     <LENGTH>110</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>OUT</KEY>
+     <ENTRY>Output file</ENTRY>
+     <LENGTH>12</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>RED</KEY>
+     <ENTRY>Records read:</ENTRY>
+     <LENGTH>15</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>TEX</KEY>
+     <ENTRY>Text file w. fld separator</ENTRY>
+     <LENGTH>27</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>TRZ</KEY>
+     <ENTRY>Fld separator</ENTRY>
+     <LENGTH>13</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>TXT</KEY>
+     <ENTRY>TXT format (fld separator = TAB)</ENTRY>
+     <LENGTH>32</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>UPL</KEY>
+     <ENTRY>Presentation server</ENTRY>
+     <LENGTH>19</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>WRI</KEY>
+     <ENTRY>Records written</ENTRY>
+     <LENGTH>18</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>XLS</KEY>
+     <ENTRY>Start Excel...</ENTRY>
+     <LENGTH>34</LENGTH>
+    </item>
+   </TPOOL>
+  </asx:values>
+ </asx:abap>
+</abapGit>

@@ -1,0 +1,62 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<abapGit version="v1.0.0" serializer="LCL_OBJECT_MSAG" serializer_version="v1.0.0">
+ <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
+  <asx:values>
+   <T100A>
+    <ARBGB>ZMS_EXBA</ARBGB>
+    <MASTERLANG>E</MASTERLANG>
+    <STEXT>Messages for Excel-BAPI</STEXT>
+   </T100A>
+   <T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>ZMS_EXBA</ARBGB>
+     <MSGNR>001</MSGNR>
+     <TEXT>File &quot;&amp;1&quot; has been uploaded before</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>ZMS_EXBA</ARBGB>
+     <MSGNR>002</MSGNR>
+     <TEXT>Configuration of function &quot;&amp;1&quot; is not exists.Contact administration</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>ZMS_EXBA</ARBGB>
+     <MSGNR>003</MSGNR>
+     <TEXT>Data is not exists</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>ZMS_EXBA</ARBGB>
+     <MSGNR>004</MSGNR>
+     <TEXT>Save table &amp;1 unsuccessful</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>ZMS_EXBA</ARBGB>
+     <MSGNR>005</MSGNR>
+     <TEXT>Upload complete: Success &amp;1 / Total &amp;2</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>ZMS_EXBA</ARBGB>
+     <MSGNR>006</MSGNR>
+     <TEXT>No document to run upload</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>ZMS_EXBA</ARBGB>
+     <MSGNR>007</MSGNR>
+     <TEXT>Sheet &apos;&amp;1&apos; - Line &apos;&amp;2&apos;, field &apos;&amp;3&apos;: Value &apos;&amp;4&apos; in  is invalid</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>ZMS_EXBA</ARBGB>
+     <MSGNR>008</MSGNR>
+     <TEXT>Sheet &apos;&amp;1&apos; - Line &apos;&amp;2&apos;, field &apos;&amp;3&apos;: Value is  too long, will be cut</TEXT>
+    </T100>
+   </T100>
+  </asx:values>
+ </asx:abap>
+</abapGit>

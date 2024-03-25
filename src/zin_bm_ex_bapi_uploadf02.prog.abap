@@ -1,0 +1,250 @@
+*&---------------------------------------------------------------------*
+*& Include          ZIN_BM_EX_BAPI_UPLOADF02
+*&---------------------------------------------------------------------*
+*&---------------------------------------------------------------------*
+*& Form 9002_Create_SALESORDER
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+FORM 9002_CREATE_SALESORDER
+  CHANGING
+    LPT_FPAR_D TYPE ZTT_BM_EXBA_FPAR
+    LPT_RETURN TYPE BAPIRET2_T
+    LPW_DOCRS  TYPE ZTB_BM_EXBA_FPAR-DOCRS.
+
+  DATA: LV_UPDATE_STATUS TYPE ZDD_BM_EXBA_UPSTS.
+
+  DATA:
+    LS_ORDER_HEADER_IN      TYPE BAPISDHD1,
+    LS_ORDER_HEADER_OT      TYPE ZST_BM_EXBA_PAR_SO,
+    LT_ORDER_ITEMS_IN       TYPE TABLE OF BAPISDITM,
+    LS_ORDER_ITEMS_IN       TYPE BAPISDITM,
+    LT_ORDER_ITEMS_INX      TYPE TABLE OF BAPISDITMX, "Item Data Checkbox
+    LT_ORDER_PARTNERS       TYPE TABLE OF BAPIPARNR,  "Document Partner
+    LT_ORDER_SCHEDULES_IN   TYPE TABLE OF BAPISCHDL,  "Schedule Line Data
+    LT_ORDER_SCHEDULES_INX  TYPE TABLE OF BAPISCHDLX, "Checkbox Schedule Line Data
+    LT_ORDER_CONDITIONS_IN  TYPE TABLE OF BAPICOND,   "Conditions
+    LT_ORDER_CONDITIONS_INX TYPE TABLE OF BAPICONDX,  "Conditions Checkbox
+    LT_ORDER_CFGS_REF       TYPE TABLE OF BAPICUCFG,  "Configuration: Reference Data
+    LT_ORDER_CFGS_INST      TYPE TABLE OF BAPICUINS,  "Configuration: Instances
+    LT_ORDER_CFGS_PART_OF   TYPE TABLE OF BAPICUPRT,  "Configuration: Part-of Specifications
+    LT_ORDER_CFGS_VALUE     TYPE TABLE OF BAPICUVAL,  "Configuration: Characteristic Values
+    LT_ORDER_CFGS_BLOB      TYPE TABLE OF BAPICUBLB,  "Configuration: BLOB Internal Data (SCE)
+    LT_ORDER_CFGS_VK        TYPE TABLE OF BAPICUVK,   "Configuration: Variant Condition Key
+    LT_ORDER_CFGS_REFINST   TYPE TABLE OF BAPICUREF,  "Configuration: Reference Item / Instance
+    LT_ORDER_CCARD          TYPE TABLE OF BAPICCARD,  "Credit Card Data
+    LT_ORDER_TEXT           TYPE TABLE OF BAPISDTEXT, "Texts
+    LT_ORDER_KEYS           TYPE TABLE OF BAPISDKEY,  "Output Table of Reference Keys
+*    LT_PARTNERADDRESSES     TYPE TABLE OF  BAPIADDR1, "BAPI Reference Structure for Addresses (Org./Company)
+*    LT_EXTENSIONIN          TYPE TABLE OF  BAPIPAREX, "Customer Enhancement for VBAK, VBAP, VBEP
+*    LT_EXTENSIONEX          TYPE TABLE OF  BAPIPAREX, "Reference Structure for BAPI Parameters ExtensionIn/ExtensionOut
+    LR_DATA                 TYPE REF TO DATA.
+
+  DATA:
+    LV_SALESDOCUMENT TYPE BAPIVBELN-VBELN,
+    LT_RETURN        TYPE TABLE OF  BAPIRET2,
+    LS_RETURN        TYPE BAPIRET2.
+
+  PERFORM 9002_GET_SO_PARAMS
+    USING LPT_FPAR_D
+    CHANGING LS_ORDER_HEADER_IN
+             LS_ORDER_HEADER_OT
+             LT_ORDER_ITEMS_IN
+             LT_ORDER_PARTNERS
+             LT_ORDER_SCHEDULES_IN
+             LT_ORDER_CONDITIONS_IN
+             LT_ORDER_CFGS_REF
+             LT_ORDER_CFGS_INST
+             LT_ORDER_CFGS_PART_OF
+             LT_ORDER_CFGS_VALUE
+             LT_ORDER_CFGS_BLOB
+             LT_ORDER_CFGS_VK
+             LT_ORDER_CFGS_REFINST
+             LT_ORDER_CCARD
+             LT_ORDER_TEXT
+             LT_ORDER_KEYS.
+
+*   Create data
+  CALL FUNCTION 'BAPI_SALESORDER_CREATEFROMDAT2'
+    EXPORTING
+      SALESDOCUMENTIN     = LS_ORDER_HEADER_OT-SALESDOCUMENTIN
+      ORDER_HEADER_IN     = LS_ORDER_HEADER_IN
+*     ORDER_HEADER_INX    =
+      SENDER              = LS_ORDER_HEADER_OT-SENDER_SYSTEM
+*     BINARY_RELATIONSHIPTYPE       =
+*     INT_NUMBER_ASSIGNMENT         =
+*     BEHAVE_WHEN_ERROR   =
+*     LOGIC_SWITCH        =
+      TESTRUN             = LS_ORDER_HEADER_OT-TESTRUN
+      CONVERT             = LS_ORDER_HEADER_OT-CONVERT
+    IMPORTING
+      SALESDOCUMENT       = LV_SALESDOCUMENT
+    TABLES
+      RETURN              = LT_RETURN
+      ORDER_ITEMS_IN      = LT_ORDER_ITEMS_IN
+*     ORDER_ITEMS_INX     =
+      ORDER_PARTNERS      = LT_ORDER_PARTNERS
+      ORDER_SCHEDULES_IN  = LT_ORDER_SCHEDULES_IN
+*     ORDER_SCHEDULES_INX =
+      ORDER_CONDITIONS_IN = LT_ORDER_CONDITIONS_IN
+*     ORDER_CONDITIONS_INX          =
+      ORDER_CFGS_REF      = LT_ORDER_CFGS_REF
+      ORDER_CFGS_INST     = LT_ORDER_CFGS_INST
+      ORDER_CFGS_PART_OF  = LT_ORDER_CFGS_PART_OF
+      ORDER_CFGS_VALUE    = LT_ORDER_CFGS_VALUE
+      ORDER_CFGS_BLOB     = LT_ORDER_CFGS_BLOB
+      ORDER_CFGS_VK       = LT_ORDER_CFGS_VK
+      ORDER_CFGS_REFINST  = LT_ORDER_CFGS_REFINST
+      ORDER_CCARD         = LT_ORDER_CCARD
+      ORDER_TEXT          = LT_ORDER_TEXT
+      ORDER_KEYS          = LT_ORDER_KEYS.
+
+*     Check exist of message type A, E
+
+  LPT_RETURN = LT_RETURN.
+  LPW_DOCRS = LV_SALESDOCUMENT.
+
+ENDFORM.
+
+*&---------------------------------------------------------------------*
+*& Form 9002_GET_SO_PARAMS
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*&      <-- LT_ORDER_ITEMS_IN
+*&      <-- LT_ORDER_PARTNERS
+*&      <-- LT_ORDER_SCHEDULES_IN
+*&      <-- LT_ORDER_CONDITIONS_IN
+*&      <-- LT_ORDER_CFGS_REF
+*&      <-- LT_ORDER_CFGS_INST
+*&      <-- LT_ORDER_CFGS_PART_OF
+*&      <-- LT_ORDER_CFGS_VALUE
+*&      <-- LT_ORDER_CFGS_BLOB
+*&      <-- LT_ORDER_CFGS_VK
+*&      <-- LT_ORDER_CFGS_REFINST
+*&      <-- LT_ORDER_CCARD
+*&      <-- LT_ORDER_TEXT
+*&      <-- LT_ORDER_KEYS
+*&---------------------------------------------------------------------*
+FORM 9002_GET_SO_PARAMS
+  USING LPT_FPAR_D TYPE ZTT_BM_EXBA_FPAR
+  CHANGING
+    LS_ORDER_HEADER_IN      TYPE BAPISDHD1
+    LS_ORDER_HEADER_OT      TYPE ZST_BM_EXBA_PAR_SO
+    LT_ORDER_ITEMS_IN       TYPE BAPISDITM_TT
+    LT_ORDER_PARTNERS       TYPE CMP_T_PARNR
+    LT_ORDER_SCHEDULES_IN   TYPE CMP_T_SCHDL      "Schedule Line Data
+    LT_ORDER_CONDITIONS_IN  TYPE CMP_T_COND       "Conditions
+    LT_ORDER_CFGS_REF       TYPE BAPICUCFG_T      "Configuration: Reference Data
+    LT_ORDER_CFGS_INST      TYPE BAPICUINS_T      "Configuration: Instances
+    LT_ORDER_CFGS_PART_OF   TYPE BAPICUPRT_T      "Configuration: Part-of Specifications
+    LT_ORDER_CFGS_VALUE     TYPE BAPICUVAL_T      "Configuration: Characteristic Values
+    LT_ORDER_CFGS_BLOB      TYPE TBL_BAPI_CUBLB   "Configuration: BLOB Internal Data (SCE)
+    LT_ORDER_CFGS_VK        TYPE TBL_BAPICUVK     "Configuration: Variant Condition Key
+    LT_ORDER_CFGS_REFINST   TYPE VLC_BAPICUREF_T  "Configuration: Reference Item / Instance
+    LT_ORDER_CCARD          TYPE VLC_BAPICCARD_T  "Credit Card Data
+    LT_ORDER_TEXT           TYPE VLC_BAPISDTEXT_T "Texts
+    LT_ORDER_KEYS           TYPE VLC_BAPISDKEY_T. "Output Table of Reference Keys
+
+  DATA:
+    LR_DATA TYPE REF TO DATA.
+
+  LOOP AT LPT_FPAR_D INTO DATA(LS_FPAR_D).
+    CASE LS_FPAR_D-PARAM.
+      WHEN 'ORDER_HEADER_IN'.
+        CALL TRANSFORMATION ID
+          SOURCE XML LS_FPAR_D-XMLSTR
+          RESULT DATA = LS_ORDER_HEADER_IN.
+      WHEN 'ORDER_HEADER_OT'.
+        CALL TRANSFORMATION ID
+          SOURCE XML LS_FPAR_D-XMLSTR
+          RESULT DATA = LS_ORDER_HEADER_OT.
+      WHEN 'ORDER_ITEMS_IN'.
+        CREATE DATA LR_DATA LIKE LINE OF LT_ORDER_ITEMS_IN.
+        CALL TRANSFORMATION ID
+          SOURCE XML LS_FPAR_D-XMLSTR
+          RESULT DATA = LR_DATA->*.
+        APPEND LR_DATA->* TO LT_ORDER_ITEMS_IN.
+      WHEN 'ORDER_PARTNERS'.
+        CREATE DATA LR_DATA LIKE LINE OF LT_ORDER_PARTNERS.
+        CALL TRANSFORMATION ID
+          SOURCE XML LS_FPAR_D-XMLSTR
+          RESULT DATA = LR_DATA->*.
+        APPEND LR_DATA->* TO LT_ORDER_PARTNERS.
+      WHEN 'ORDER_SCHEDULES_IN'.
+        CREATE DATA LR_DATA LIKE LINE OF LT_ORDER_SCHEDULES_IN.
+        CALL TRANSFORMATION ID
+          SOURCE XML LS_FPAR_D-XMLSTR
+          RESULT DATA = LR_DATA->*.
+        APPEND LR_DATA->* TO LT_ORDER_SCHEDULES_IN.
+      WHEN 'ORDER_CONDITIONS_IN'.
+        CREATE DATA LR_DATA LIKE LINE OF LT_ORDER_CONDITIONS_IN.
+        CALL TRANSFORMATION ID
+          SOURCE XML LS_FPAR_D-XMLSTR
+          RESULT DATA = LR_DATA->*.
+        APPEND LR_DATA->* TO LT_ORDER_CONDITIONS_IN.
+      WHEN 'ORDER_CFGS_REF'.
+        CREATE DATA LR_DATA LIKE LINE OF LT_ORDER_CFGS_REF.
+        CALL TRANSFORMATION ID
+          SOURCE XML LS_FPAR_D-XMLSTR
+          RESULT DATA = LR_DATA->*.
+        APPEND LR_DATA->* TO LT_ORDER_CFGS_REF.
+      WHEN 'ORDER_CFGS_INST'.
+        CREATE DATA LR_DATA LIKE LINE OF LT_ORDER_CFGS_INST.
+        CALL TRANSFORMATION ID
+          SOURCE XML LS_FPAR_D-XMLSTR
+          RESULT DATA = LR_DATA->*.
+        APPEND LR_DATA->* TO LT_ORDER_CFGS_INST.
+      WHEN 'ORDER_CFGS_PART_OF'.
+        CREATE DATA LR_DATA LIKE LINE OF LT_ORDER_CFGS_PART_OF.
+        CALL TRANSFORMATION ID
+          SOURCE XML LS_FPAR_D-XMLSTR
+          RESULT DATA = LR_DATA->*.
+        APPEND LR_DATA->* TO LT_ORDER_CFGS_PART_OF.
+      WHEN 'ORDER_CFGS_VALUE'.
+        CREATE DATA LR_DATA LIKE LINE OF LT_ORDER_CFGS_VALUE.
+        CALL TRANSFORMATION ID
+          SOURCE XML LS_FPAR_D-XMLSTR
+          RESULT DATA = LR_DATA->*.
+        APPEND LR_DATA->* TO LT_ORDER_CFGS_VALUE.
+      WHEN 'ORDER_CFGS_BLOB'.
+        CREATE DATA LR_DATA LIKE LINE OF LT_ORDER_CFGS_BLOB.
+        CALL TRANSFORMATION ID
+          SOURCE XML LS_FPAR_D-XMLSTR
+          RESULT DATA = LR_DATA->*.
+        APPEND LR_DATA->* TO LT_ORDER_CFGS_BLOB.
+      WHEN 'ORDER_CFGS_VK'.
+        CREATE DATA LR_DATA LIKE LINE OF LT_ORDER_CFGS_VK.
+        CALL TRANSFORMATION ID
+          SOURCE XML LS_FPAR_D-XMLSTR
+          RESULT DATA = LR_DATA->*.
+        APPEND LR_DATA->* TO LT_ORDER_CFGS_VK.
+      WHEN 'ORDER_CFGS_REFINST'.
+        CREATE DATA LR_DATA LIKE LINE OF LT_ORDER_CFGS_REFINST.
+        CALL TRANSFORMATION ID
+          SOURCE XML LS_FPAR_D-XMLSTR
+          RESULT DATA = LR_DATA->*.
+        APPEND LR_DATA->* TO LT_ORDER_CFGS_REFINST.
+      WHEN 'ORDER_CCARD'.
+        CREATE DATA LR_DATA LIKE LINE OF LT_ORDER_CCARD.
+        CALL TRANSFORMATION ID
+          SOURCE XML LS_FPAR_D-XMLSTR
+          RESULT DATA = LR_DATA->*.
+        APPEND LR_DATA->* TO LT_ORDER_CCARD.
+      WHEN 'ORDER_TEXT'.
+        CREATE DATA LR_DATA LIKE LINE OF LT_ORDER_TEXT.
+        CALL TRANSFORMATION ID
+          SOURCE XML LS_FPAR_D-XMLSTR
+          RESULT DATA = LR_DATA->*.
+        APPEND LR_DATA->* TO LT_ORDER_TEXT.
+      WHEN 'ORDER_KEYS'.
+        CREATE DATA LR_DATA LIKE LINE OF LT_ORDER_KEYS.
+        CALL TRANSFORMATION ID
+          SOURCE XML LS_FPAR_D-XMLSTR
+          RESULT DATA = LR_DATA->*.
+        APPEND LR_DATA->* TO LT_ORDER_KEYS.
+      WHEN OTHERS.
+    ENDCASE.
+  ENDLOOP.
+
+ENDFORM.

@@ -1,0 +1,171 @@
+*&---------------------------------------------------------------------*
+*& Include          ZIN_BM_EX_BAPI_UPLOADF06
+*&---------------------------------------------------------------------*
+
+TYPES:
+  GTY_BAPIVBRKPARNR           TYPE TABLE OF BAPIVBRKPARNR.
+
+*&---------------------------------------------------------------------*
+*& Form 9006_BILL_CREATE
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*& -->  p1        text
+*& <--  p2        text
+*&---------------------------------------------------------------------*
+FORM 9006_BILL_CREATE
+  CHANGING
+    LPT_FPAR_D TYPE ZTT_BM_EXBA_FPAR
+    LPT_RETURN TYPE BAPIRET2_T
+    LPW_DOCRS  TYPE ZTB_BM_EXBA_FPAR-DOCRS.
+
+  DATA:
+    LS_CREATORDATAIN TYPE BAPICREATORDATA,
+    LV_VBELN         TYPE VBELN_VF.
+
+  DATA:
+    LT_BILLINGDATAIN   TYPE TABLE OF BAPIVBRK, "Table for Item Data to be Processed
+    LT_CONDITIONDATAIN TYPE TABLE OF BAPIKOMV, "Table for Conditions to be Processed
+    LT_CCARDDATAIN     TYPE TABLE OF BAPICCARD_VF, "Table for Method of Payment to be Processed
+    LT_TEXTDATAIN      TYPE TABLE OF BAPIKOMFKTX, "Communication Structure Texts for Billing Interface
+    LT_EXTENSIONIN     TYPE TABLE OF BAPIPAREX, "Ref. structure for BAPI parameter ExtensionIn/ExtensionOut
+    LT_PARTNERDATAIN   TYPE TABLE OF BAPIVBRKPARNR, "Table for Partners to be Processed
+    LT_NFMETALLITMS    TYPE TABLE OF /NFM/BAPIDOCITM, "Communication Structure NF Document Item Data
+    LT_ERRORS          TYPE TABLE OF BAPIVBRKERRORS, "Information on Incorrect Processing of Preceding Items
+    LT_SUCCESS         TYPE TABLE OF BAPIVBRKSUCCESS, "Table for Successfully Processed Items
+    LT_RETURN          TYPE TABLE OF BAPIRET1, "Table for Processing Errors
+    LS_RETURN          TYPE BAPIRET1.
+
+  PERFORM 9006_GET_BILL_CREATE_PARAMS
+    USING LPT_FPAR_D
+    CHANGING
+      LT_BILLINGDATAIN
+      LT_CONDITIONDATAIN
+      LT_CCARDDATAIN
+      LT_TEXTDATAIN
+      LT_EXTENSIONIN
+      LT_PARTNERDATAIN
+      LT_NFMETALLITMS.
+
+*   Create data
+  CALL FUNCTION 'BAPI_BILLINGDOC_CREATEMULTIPLE'
+    EXPORTING
+      CREATORDATAIN   = LS_CREATORDATAIN
+*     TESTRUN         =
+*     POSTING         =
+    TABLES
+      BILLINGDATAIN   = LT_BILLINGDATAIN
+      CONDITIONDATAIN = LT_CONDITIONDATAIN
+      CCARDDATAIN     = LT_CCARDDATAIN
+      TEXTDATAIN      = LT_TEXTDATAIN
+      ERRORS          = LT_ERRORS
+      RETURN          = LT_RETURN
+      SUCCESS         = LT_SUCCESS
+      EXTENSIONIN     = LT_EXTENSIONIN
+      PARTNERDATAIN   = LT_PARTNERDATAIN
+      NFMETALLITMS    = LT_NFMETALLITMS.
+
+  " Get Billing document
+  IF LT_SUCCESS IS NOT INITIAL.
+    READ TABLE LT_SUCCESS INTO DATA(LS_SUCCESS) INDEX 1.
+    IF SY-SUBRC IS INITIAL.
+      LV_VBELN = LS_SUCCESS-BILL_DOC.
+    ENDIF.
+  ENDIF.
+
+  LPT_RETURN = LT_RETURN.
+  LPW_DOCRS  = LV_VBELN.
+
+ENDFORM.
+*&---------------------------------------------------------------------*
+*& Form 9006_GET_BILL_CREATE_PARAMS
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*&      --> LPT_FPAR_D
+*&      <-- LT_BILLINGDATAIN
+*&      <-- LT_CONDITIONDATAIN
+*&      <-- LT_CCARDDATAIN
+*&      <-- LT_TEXTDATAIN
+*&      <-- LT_EXTENSIONIN
+*&      <-- LT_PARTNERDATAIN
+*&      <-- LT_NFMETALLITMS
+*&---------------------------------------------------------------------*
+FORM 9006_GET_BILL_CREATE_PARAMS
+  USING LPT_FPAR_D TYPE ZTT_BM_EXBA_FPAR
+  CHANGING
+    LPT_BILLINGDATAIN TYPE BAPIVBRK_T
+    LPT_CONDITIONDATAIN TYPE BAPIKOMV_T
+    LPT_CCARDDATAIN TYPE /SYCLO/SD_BAPICCARD_VF_TAB
+    LPT_TEXTDATAIN TYPE BAPIKOMFKTX_T
+    LPT_EXTENSIONIN TYPE BAPIPAREX_TAB
+    LPT_PARTNERDATAIN TYPE GTY_BAPIVBRKPARNR
+    LPT_NFMETALLITMS TYPE /SYCLO/MM_BAPIDOCITM_TAB.
+
+  DATA:
+    LR_DATA TYPE REF TO DATA.
+
+  LOOP AT LPT_FPAR_D INTO DATA(LPS_FPAR_D).
+    CASE LPS_FPAR_D-PARAM.
+      WHEN 'BILLINGDATAIN'.
+        CREATE DATA LR_DATA LIKE LINE OF LPT_BILLINGDATAIN.
+        CALL TRANSFORMATION ID
+          SOURCE XML LPS_FPAR_D-XMLSTR
+          RESULT DATA = LR_DATA->*.
+        APPEND LR_DATA->* TO LPT_BILLINGDATAIN.
+      WHEN 'CONDITIONDATAIN'.
+        CREATE DATA LR_DATA LIKE LINE OF LPT_CONDITIONDATAIN.
+        CALL TRANSFORMATION ID
+          SOURCE XML LPS_FPAR_D-XMLSTR
+          RESULT DATA = LR_DATA->*.
+        APPEND LR_DATA->* TO LPT_CONDITIONDATAIN.
+      WHEN 'CCARDDATAIN'.
+        CREATE DATA LR_DATA LIKE LINE OF LPT_CCARDDATAIN.
+        CALL TRANSFORMATION ID
+          SOURCE XML LPS_FPAR_D-XMLSTR
+          RESULT DATA = LR_DATA->*.
+        APPEND LR_DATA->* TO LPT_CCARDDATAIN.
+      WHEN 'TEXTDATAIN'.
+        CREATE DATA LR_DATA LIKE LINE OF LPT_TEXTDATAIN.
+        CALL TRANSFORMATION ID
+          SOURCE XML LPS_FPAR_D-XMLSTR
+          RESULT DATA = LR_DATA->*.
+        APPEND LR_DATA->* TO LPT_TEXTDATAIN.
+      WHEN 'EXTENSIONIN'.
+        CREATE DATA LR_DATA LIKE LINE OF LPT_EXTENSIONIN.
+        CALL TRANSFORMATION ID
+          SOURCE XML LPS_FPAR_D-XMLSTR
+          RESULT DATA = LR_DATA->*.
+        APPEND LR_DATA->* TO LPT_EXTENSIONIN.
+      WHEN 'PARTNERDATAIN'.
+        CREATE DATA LR_DATA LIKE LINE OF LPT_PARTNERDATAIN.
+        CALL TRANSFORMATION ID
+          SOURCE XML LPS_FPAR_D-XMLSTR
+          RESULT DATA = LR_DATA->*.
+        APPEND LR_DATA->* TO LPT_PARTNERDATAIN.
+      WHEN 'NFMETALLITMS'.
+        CREATE DATA LR_DATA LIKE LINE OF LPT_NFMETALLITMS.
+        CALL TRANSFORMATION ID
+          SOURCE XML LPS_FPAR_D-XMLSTR
+          RESULT DATA = LR_DATA->*.
+        APPEND LR_DATA->* TO LPT_NFMETALLITMS.
+      WHEN OTHERS.
+    ENDCASE.
+  ENDLOOP.
+
+  " Conversion Material in PRITEM
+  LOOP AT LPT_BILLINGDATAIN ASSIGNING FIELD-SYMBOL(<LFS_BILLINGDATAIN>).
+    CALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT'
+      EXPORTING
+        INPUT  = <LFS_BILLINGDATAIN>-MATERIAL
+      IMPORTING
+        OUTPUT = <LFS_BILLINGDATAIN>-MATERIAL.
+
+    CALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT'
+      EXPORTING
+        INPUT  = <LFS_BILLINGDATAIN>-MATERIAL_LONG
+      IMPORTING
+        OUTPUT = <LFS_BILLINGDATAIN>-MATERIAL_LONG.
+  ENDLOOP.
+
+ENDFORM.
